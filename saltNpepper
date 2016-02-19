@@ -15,16 +15,17 @@ void salt(Mat img,int n)
     namedWindow("caucassian",1);
     imshow("caucassian",img);
     waitKey(1000);
-    cvtColor(img,out,CV_BGR2GRAY);
+    cvtColor(img,out,CV_BGR2GRAY);//converts image into 8 bit depth gray scale image
     namedWindow("gray",1);
     imshow("gray",out);
     waitKey(1000);
     for(k=0;k<n;k++)
     {
         i=rand()%img.cols;
-        j=rand()%img.rows;
-        out.at<uchar>(j,i)=255;
-        img.at<cv::Vec3b>(j,i)[0]=255;
+        j=rand()%img.rows;// random no. are generated
+        out.at<uchar>(j,i)=255;// at function is used to access pixels
+        //Vec3b is a vector of 3 unsigned char
+        img.at<cv::Vec3b>(j,i)[0]=255; //each selected pixel is assigned 255 for each channel to make the pixel white
         img.at<cv::Vec3b>(j,i)[1]=255;
         img.at<cv::Vec3b>(j,i)[2]=255;
 
