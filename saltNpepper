@@ -1,0 +1,46 @@
+#include "opencv2/calib3d.hpp"
+#include <opencv2/core/utility.hpp>
+#include "opencv2/imgproc.hpp"
+#include "opencv2/calib3d.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/videoio.hpp"
+#include "opencv2/highgui.hpp"
+#include<iostream>
+using namespace std;
+using namespace cv;
+void salt(Mat img,int n)
+{
+    int i,j,k;
+    Mat out;
+    namedWindow("caucassian",1);
+    imshow("caucassian",img);
+    waitKey(1000);
+    cvtColor(img,out,CV_BGR2GRAY);
+    namedWindow("gray",1);
+    imshow("gray",out);
+    waitKey(1000);
+    for(k=0;k<n;k++)
+    {
+        i=rand()%img.cols;
+        j=rand()%img.rows;
+        out.at<uchar>(j,i)=255;
+        img.at<cv::Vec3b>(j,i)[0]=255;
+        img.at<cv::Vec3b>(j,i)[1]=255;
+        img.at<cv::Vec3b>(j,i)[2]=255;
+
+
+    }
+
+    namedWindow("saltNpepper",1);
+    imshow("saltNpepper",out);
+    waitKey(2000);
+    imshow("saltNpepper",img);
+    waitKey(2000);
+}
+int main()
+{
+   Mat A;
+   A=imread("caucassian.png",1);
+   salt(A,800);
+   return 0;
+}
