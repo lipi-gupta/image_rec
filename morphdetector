@@ -1,0 +1,122 @@
+#include "opencv2/calib3d.hpp"
+#include <opencv2/core/utility.hpp>
+#include "opencv2/imgproc.hpp"
+#include "opencv2/calib3d.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/videoio.hpp"
+#include "opencv2/highgui.hpp"
+#include<iostream>
+using namespace std;
+using namespace cv;
+class MorphFeatures
+{
+   double thresh; //threshold to produce binary image
+   //structuring elements
+   Mat cross;
+   Mat diamond;
+   Mat square;
+   Mat x;
+   //constructor
+   public:
+   MorphFeatures():thresh(-1),cross(5,5,CV_8U,Scalar(0)),diamond(5,5,CV_8U,Scalar(1)),
+                   square(5,5,CV_8U,Scalar(1)),x(5,5,CV_8U,Scalar(0))
+        {
+            //creating a cross shaped structuring element
+        for(int i=0;i<5;i++)
+        {
+            cross.at<uchar>(2,i)=1;
+            cross.at<uchar>(i,2)=1;
+        }
+        //creating a diamond shape str. elem.
+        diamond.at<uchar>(0,0)=0;
+        diamond.at<uchar>(0,1)=0;
+        diamond.at<uchar>(1,0)=0;
+        diamond.at<uchar>(0,3)=0;
+        diamond.at<uchar>(0,4)=0;
+        diamond.at<uchar>(1,4)=0;
+        diamond.at<uchar>(3,0)=0;
+        diamond.at<uchar>(4,0)=0;
+        diamond.at<uchar>(4,1)=0;
+        diamond.at<uchar>(4,3)=0;
+        diamond.at<uchar>(3,4)=0;
+        diamond.at<uchar>(4,4)=0;
+        //creating an x shaped str element
+        for(int i=0;i<5;i++)
+        {
+            x.at<uchar>(i,i)=1;
+            x.at<uchar>(4-i,i)=1;
+        }
+        }
+        //end of constructor
+        public:
+        Mat getCorners(Mat img)
+        {
+            Mat result;
+            //dilate with cross
+            dilate(img,result,cross);
+            //erode with diamond
+            erode(result,result,diamond);
+            Mat result2;
+            //dilate with x
+            dilate(img,result2,x);
+            //erode with square
+            erode(result2,result2,square);
+            //corners at obtained by differencing result and result2
+            absdiff(result2,result,result);
+            //apply threshold to get binary image
+            applyBinaryThreshold(result);
+            return result;
+        }
+        void drawOnImage(const Mat &binary,Mat image)
+        {
+           Mat_<uchar>::const_iterator it=binary.begin<uchar>();
+           Mat_<uchar>::const_iterator itend=binary.end<uchar>();
+           for(int i=0;it!=itend;++it,++i)
+           {
+             if(*it!=0)
+                cv::circle(image,Point(i%image.step,i/image.step),10,Scalar(255));
+           }
+        }
+   void applyBinaryThreshold(Mat &img)
+   {
+       if(thresh>0)
+       threshold(img,img,thresh,255,THRESH_BINARY);
+   }
+   public:
+   Mat getEdges(Mat image)
+   {
+     Mat result;
+     morphologyEx(image,result,MORPH_GRADIENT,Mat());
+     namedWindow("gradient",0);
+     imshow("gradient",result);
+     waitKey(0);
+     applyBinaryThreshold(result);
+     return result;
+   }
+   void setThreshold(double threshvalue)
+   {
+       thresh=threshvalue;
+   }
+};
+int main()
+{
+    Mat A,B,C;
+    MorphFeatures morph;
+    A=imread("room2.jpg",0);
+    namedWindow("original",0);
+    imshow("original",A);
+    waitKey(0);
+    morph.setThreshold(30.0);
+    B=morph.getEdges(A);
+    namedWindow("edges",0);
+    imshow("edges",B);
+    waitKey(0);
+    Mat corners;
+    corners=morph.getCorners(A);
+    C=A.clone();
+    morph.drawOnImage(corners,C);
+    namedWindow("Corners",0);
+    imshow("Corners",C);
+    waitKey(0);
+    return 0;
+}
